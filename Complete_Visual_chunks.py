@@ -40,7 +40,7 @@ def get_dropdown_options(main_folders, sub_folders, subsub_folder):
 
 
 def convert_timestamp(df):
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')  # Assuming timestamp is in seconds
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     return df
 
 
