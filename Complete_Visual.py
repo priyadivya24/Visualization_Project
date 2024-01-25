@@ -123,8 +123,6 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
 main_folder = 'XFEL.SYNC'
 sub_folder = 'LASER.LOCK.XLO'
 sub_folder2 = 'LINK.LOCK'
-climate_folder = os.path.join(main_folder, "CLIMATE")
-subsubfolders = os.listdir(climate_folder)
 subsub_folder_1 = 'XTIN.MLO1'
 subsub_folder_2 = 'XHEXP1.SLO1'
 subsub_folder_3 = 'XTIN.AMC8.ACTUATOR'
