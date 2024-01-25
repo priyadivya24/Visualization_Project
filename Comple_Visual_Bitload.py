@@ -10,7 +10,6 @@ from dash_bootstrap_templates import load_figure_template
 from dash.exceptions import PreventUpdate
 
 
-# Function to read parquet files in a subfolder
 def read_parquet_files(subfolder_path, num_rows=100):
     files = [f for f in os.listdir(subfolder_path) if f.endswith('.parquet')]
     dataframes = [pd.read_table(os.path.join(subfolder_path, f), nrows=num_rows) for f in files]
@@ -32,9 +31,8 @@ def get_dropdown_options(main_folders, sub_folders, subsub_folder):
     return [{'label': folder, 'value': folder} for folder in subsubsubfolders]
 
 
-# Function to convert timestamp to normal date and time
 def convert_timestamp(df):
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')  # Assuming timestamp is in seconds
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     return df
 
 
@@ -43,7 +41,6 @@ def downsample_data(df, timestamp_col='timestamp', value_col='data'):
     return df_resampled
 
 
-# Function to update the line plot based on dropdown selection and date range
 def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folder):
     if selected_subfolder is None:
         return go.Figure()
@@ -59,7 +56,6 @@ def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folde
     return fig
 
 
-# Function to create the dashboard layout
 def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, subsub_folders_2, subsub_folders_3,
                   subsub_folders_4):
     return html.Div([
