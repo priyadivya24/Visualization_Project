@@ -10,13 +10,13 @@ from dash.dependencies import Input, Output
 from dash_bootstrap_templates import load_figure_template
 
 
-# Function to read parquet files in a subfolder
+#read parquet
 def read_parquet_files(subfolder_path):
     files = [f for f in os.listdir(subfolder_path) if f.endswith('.parquet')]
     dataframes = [pd.read_parquet(os.path.join(subfolder_path, f)) for f in files]
     return pd.concat(dataframes, ignore_index=True)
 
-
+#dropdown for layout
 def get_dropdown_options(main_folders, sub_folders, subsub_folder):
     if None in (main_folders, sub_folders, subsub_folder):
         return []
@@ -32,21 +32,21 @@ def get_dropdown_options(main_folders, sub_folders, subsub_folder):
     return [{'label': folder, 'value': folder} for folder in subsubsubfolders]
 
 
-# Function to convert timestamp to normal date and time
+# convert timestamp
 def convert_timestamp(df):
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')  # Assuming timestamp is in seconds
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     return df
 
 
-# Function to downsample data using plotly resampler
+# downsample data using plotly resampler
 def downsample_data(df):
-    df = df.set_index('timestamp')  # Set the 'timestamp' column as the index
+    df = df.set_index('timestamp')
     df_resampled = df.resample('6H').mean()
-    df_resampled = df_resampled.reset_index()  # Reset index to make 'timestamp' a regular column
+    df_resampled = df_resampled.reset_index()
     return df_resampled
 
 
-# Function to update the line plot based on dropdown selection and date range
+# update plot
 def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folder):
     if selected_subfolder is None:
         return px.line()
@@ -62,7 +62,7 @@ def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folde
     return fig
 
 
-# Function to create the dashboard layout
+# layout
 def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, subsub_folders_2, subsub_folders_3,
                   subsub_folders_4):
     return html.Div([
@@ -119,7 +119,7 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
         ]),
     ], style={'width': '80%', 'margin': 'auto', 'display': 'block'})
 
-
+# hardcode path
 main_folder = 'XFEL.SYNC'
 sub_folder = 'LASER.LOCK.XLO'
 sub_folder2 = 'LINK.LOCK'
@@ -135,7 +135,7 @@ load_figure_template('LUX')
 app.layout = create_layout(main_folder, sub_folder, subsub_folder_1, sub_folder2, subsub_folder_2, subsub_folder_3,
                            subsub_folder_4)
 
-
+#callback for plots individually
 @app.callback(Output('line-plot-1', 'figure'),
               [Input('subfolder-dropdown', 'value')])
 def update_graph_1(selected_subfolder):
