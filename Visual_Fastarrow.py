@@ -1,4 +1,6 @@
+import datetime
 import os
+import time
 import pandas as pd
 import plotly.express as px
 import dash
@@ -48,21 +50,39 @@ def get_initial_date_range(main_folders, sub_folders, subsub_folder):
 
 
 def convert_timestamp(df):
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Convert Timestamp started : ", now)
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Convert Timestamp completed at : ", now)
     return df
 
 
 def downsample_data(df, timestamp_col='timestamp', value_col='data'):
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Downsample Data started : ", now)
     df_resampled = df.groupby(pd.Grouper(key=timestamp_col, freq='1D'))[value_col].mean().reset_index()
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Downsample Data completed at : ", now)
     return df_resampled
 
 
 def update_line_plot(selected_subfolder, start_date, end_date, main_folders, sub_folders, subsub_folder):
     if selected_subfolder is None:
         return px.line()
+    
+    # Track time taken for execution
+    start = time.perf_counter()
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Read Parquet started : ", now)
 
     subfolder_path = os.path.join(main_folders, sub_folders, subsub_folder, selected_subfolder)
     df = read_parquet_files(subfolder_path)
+
+    
+    now = datetime.now().strftime("%H:%M:%S")
+    print("Read Parquet completed at : ", now)
+
     df = convert_timestamp(df)
     if start_date and end_date:
         df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
@@ -74,7 +94,9 @@ def update_line_plot(selected_subfolder, start_date, end_date, main_folders, sub
 
     fig = make_subplots(specs=[[{'secondary_y': True}]])
     fig.add_trace(px.line(df, x='timestamp', y='data').data[0])
-
+    
+    end = time.perf_counter()
+    print(f'Update Line Plot Function Completed in {round(end - start, 2)} seconds')
     return fig
 
 
