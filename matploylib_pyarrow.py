@@ -3,22 +3,21 @@ import os
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
+
 import dash
 from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
-from dash_bootstrap_templates import load_figure_template
+
 import pyarrow.parquet as pq
 import pyarrow as pa
-
 
 def read_parquet_files(subfolder_path):
     files = [f for f in os.listdir(subfolder_path) if f.endswith('.parquet')]
     tables = [pq.read_table(os.path.join(subfolder_path, f)) for f in files]
     concatenated_table = pa.concat_tables(tables)
     return concatenated_table.to_pandas()
-
 
 def get_dropdown_options(main_folders, sub_folders, subsub_folder):
     if None in (main_folders, sub_folders, subsub_folder):
@@ -29,21 +28,17 @@ def get_dropdown_options(main_folders, sub_folders, subsub_folder):
     subsub_folder = str(subsub_folder)
 
     subsubsubfolder_path = os.path.join(main_folders, sub_folders, subsub_folder)
-    subsubsubfolders = [f for f in os.listdir(subsubsubfolder_path) if
-                        os.path.isdir(os.path.join(subsubsubfolder_path, f))]
+    subsubsubfolders = [f for f in os.listdir(subsubsubfolder_path) if os.path.isdir(os.path.join(subsubsubfolder_path, f))]
 
     return [{'label': folder, 'value': folder} for folder in subsubsubfolders]
-
 
 def convert_timestamp(df):
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     return df
 
-
 def downsample_data(df, timestamp_col='timestamp', value_col='data'):
     df_resampled = df.groupby(pd.Grouper(key=timestamp_col, freq='6h'))[value_col].mean().reset_index()
     return df_resampled
-
 
 def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folder):
     if selected_subfolder is None:
@@ -61,18 +56,15 @@ def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folde
 
     fig, ax = plt.subplots()
     ax.plot(df['timestamp'], df['data'])
-    ax.set_xlabel('Time')
+    ax.set_xlabel('Timestamp')
     ax.set_ylabel('Data')
     ax.set_title('Line Plot')
-
     end = time.perf_counter()
     print(f'Update Line Plot Function Completed in {round(end - start, 2)} seconds')
 
     return fig
 
-
-def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, subsub_folders_2, subsub_folders_3,
-                  subsub_folders_4):
+def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, subsub_folders_2, subsub_folders_3, subsub_folders_4):
     return html.Div([
         html.H1("Dashboard"),
         html.Div([
@@ -96,8 +88,8 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
                 ], width=6),
             ]),
             dbc.Row([
-                dbc.Col(dcc.Loading(dcc.Graph(id='line-plot-1', config={'displayModeBar': False})), width=6),
-                dbc.Col(dcc.Loading(dcc.Graph(id='line-plot-2', config={'displayModeBar': False})), width=6),
+                dbc.Col(dcc.Loading(html.Div(id='line-plot-1')), width=6),
+                dbc.Col(dcc.Loading(html.Div(id='line-plot-2')), width=6),
             ]),
         ]),
         html.Div([
@@ -121,12 +113,11 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
                 ], width=6),
             ]),
             dbc.Row([
-                dbc.Col(dcc.Loading(dcc.Graph(id='line-plot-3', config={'displayModeBar': False})), width=6),
-                dbc.Col(dcc.Loading(dcc.Graph(id='line-plot-4', config={'displayModeBar': False})), width=6),
+                dbc.Col(dcc.Loading(html.Div(id='line-plot-3')), width=6),
+                dbc.Col(dcc.Loading(html.Div(id='line-plot-4')), width=6),
             ]),
         ]),
     ], style={'width': '80%', 'margin': 'auto', 'display': 'block'})
-
 
 main_folder = 'XFEL.SYNC'
 sub_folder = 'LASER.LOCK.XLO'
@@ -137,47 +128,39 @@ subsub_folder_3 = 'XTIN.AMC8.ACTUATOR'
 subsub_folder_4 = 'XTIN.AMC8.CONTROLLER'
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
-load_figure_template('LUX')
-app.layout = create_layout(main_folder, sub_folder, subsub_folder_1, sub_folder2, subsub_folder_2, subsub_folder_3,
-                           subsub_folder_4)
+app.layout = create_layout(main_folder, sub_folder, subsub_folder_1, sub_folder2, subsub_folder_2, subsub_folder_3, subsub_folder_4)
 
-
-@app.callback(Output('line-plot-1', 'figure'), [Input('subfolder-dropdown', 'value')])
+@app.callback(Output('line-plot-1', 'children'), [Input('subfolder-dropdown', 'value')])
 def update_graph_1(selected_subfolder):
     start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_1)
     end = time.perf_counter()
     print(f'Update Graph1 Plot Function Completed in {round(end - start, 2)} seconds')
-    return fig
+    return dcc.Graph(figure=fig)
 
-
-@app.callback(Output('line-plot-2', 'figure'), [Input('subfolder-dropdown-2', 'value')])
+@app.callback(Output('line-plot-2', 'children'), [Input('subfolder-dropdown-2', 'value')])
 def update_graph_2(selected_subfolder):
     start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_2)
     end = time.perf_counter()
     print(f'Update Graph2 Plot Function Completed in {round(end - start, 2)} seconds')
-    return fig
+    return dcc.Graph(figure=fig)
 
-
-@app.callback(Output('line-plot-3', 'figure'), [Input('subfolder-dropdown-3', 'value')])
+@app.callback(Output('line-plot-3', 'children'), [Input('subfolder-dropdown-3', 'value')])
 def update_graph_3(selected_subfolder):
     start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_3)
     end = time.perf_counter()
     print(f'Update Graph3 Plot Function Completed in {round(end - start, 2)} seconds')
-    return fig
+    return dcc.Graph(figure=fig)
 
-
-@app.callback(Output('line-plot-4', 'figure'),
-              [Input('subfolder-dropdown-4', 'value')])
+@app.callback(Output('line-plot-4', 'children'), [Input('subfolder-dropdown-4', 'value')])
 def update_graph_4(selected_subfolder):
     start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_4)
     end = time.perf_counter()
     print(f'Update Graph4 Plot Function Completed in {round(end - start, 2)} seconds')
-    return fig
-
+    return dcc.Graph(figure=fig)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
