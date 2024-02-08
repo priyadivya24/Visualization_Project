@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from ipywidgets import interact, Dropdown
 
 
-# Function to read parquet files and convert timestamp
+# read parquet files
 def read_parquet_files(folder_path):
     df_list = []
     for root, dirs, files in os.walk(folder_path):
@@ -16,9 +16,9 @@ def read_parquet_files(folder_path):
     return pd.concat(df_list)
 
 
-# Main function to create dashboard
+#  create dashboard
 def create_dashboard(main1_folder_path):
-    # Function to update plot based on dropdown selection
+    # update plot based on dropdown selection
     def update_plot(selected_xtin_folder, selected_xhexp_folder):
         xtin_folder_data = read_parquet_files(
             os.path.join(main1_folder_path, 'LASER.LOCK.XLO', 'XTIN.MLO1', selected_xtin_folder))
@@ -34,7 +34,7 @@ def create_dashboard(main1_folder_path):
         plt.tight_layout()
         plt.show()
 
-    # Create dropdown menu for subfolders in XTIN.MLO1
+    # dropdown
     xtins_folder_path = os.path.join(main_folder_path, 'LASER.LOCK.XLO', 'XTIN.MLO1')
     xhexps_folder_path = os.path.join(main_folder_path, 'LASER.LOCK.XLO', 'XHEXP1.SLO1')
 
@@ -45,7 +45,7 @@ def create_dashboard(main1_folder_path):
              selected_xhexp_folder=Dropdown(options=subfolders_xhexp))
 
 
-# Specify the main folder path
+# main folder path
 main_folder_path = 'XFEL.SYNC'
 
 # Create dashboard
