@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from ipywidgets import interact, Dropdown
+import time
 
 
 # read parquet files
@@ -20,6 +21,8 @@ def read_parquet_files(folder_path):
 def create_dashboard(main1_folder_path):
     # update plot based on dropdown selection
     def update_plot(selected_xtin_folder, selected_xhexp_folder, selected_actu_folder, selected_cont_folder):
+        start_time = time.time()  # Start the timer
+
         xtin_folder_data = read_parquet_files(
             os.path.join(main1_folder_path, 'LASER.LOCK.XLO', 'XTIN.MLO1', selected_xtin_folder))
         xhexp_folder_data = read_parquet_files(
@@ -40,6 +43,9 @@ def create_dashboard(main1_folder_path):
         plt.tight_layout()
         plt.show()
 
+        end_time = time.time()  # End the timer
+        print("Time taken to load data and display the plot:", end_time - start_time, "seconds")
+
     # dropdown
     xtins_folder_path = os.path.join(main_folder_path, 'LASER.LOCK.XLO', 'XTIN.MLO1')
     xhexps_folder_path = os.path.join(main_folder_path, 'LASER.LOCK.XLO', 'XHEXP1.SLO1')
@@ -52,7 +58,7 @@ def create_dashboard(main1_folder_path):
     subfolders_cont = os.listdir(conts_folder_path)
 
     interact(update_plot, selected_xtin_folder=Dropdown(options=subfolders_xtin),
-             selected_xhexp_folder=Dropdown(options=subfolders_xhexp), 
+             selected_xhexp_folder=Dropdown(options=subfolders_xhexp),
              selected_actu_folder=Dropdown(options=subfolders_actu),
              selected_cont_folder=Dropdown(options=subfolders_cont))
 
