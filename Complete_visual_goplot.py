@@ -1,4 +1,5 @@
 import os
+import time
 import pandas as pd
 import plotly.graph_objects as go
 import dash
@@ -11,7 +12,7 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 
 
-def read_parquet_files(subfolder_path):
+def load_parquet_data(subfolder_path):
     files = [f for f in os.listdir(subfolder_path) if f.endswith('.parquet')]
     tables = [pq.read_table(os.path.join(subfolder_path, f)) for f in files]
     concatenated_table = pa.concat_tables(tables)
@@ -34,7 +35,7 @@ def get_dropdown_options(main_folders, sub_folders, subsub_folder):
 
 
 def convert_timestamp(df):
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')  # Assuming timestamp is in seconds
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
     return df
 
 
@@ -48,7 +49,7 @@ def update_line_plot(selected_subfolder, main_folders, sub_folders, subsub_folde
         return go.Figure()
 
     subfolder_path = os.path.join(main_folders, sub_folders, subsub_folder, selected_subfolder)
-    df = read_parquet_files(subfolder_path)
+    df = load_parquet_data(subfolder_path)
     df = convert_timestamp(df)
     df = downsample_data(df)
 
@@ -63,13 +64,13 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
     return html.Div([
         html.H1("Dashboard"),
         html.Div([
-            html.H2("XTIN.MLO1 and SLO1 Dashboards"),
+            html.H2("MLO1 and SLO1"),
             dbc.Row([
                 dbc.Col([
                     dcc.Dropdown(
                         id='subfolder-dropdown',
                         options=get_dropdown_options(main_folders, sub_folders, subsub_folders_1),
-                        value=None,
+                        value='CTRL0.OUT.MEAN.RD',
                         placeholder="Select Subfolder"
                     ),
                 ], width=6),
@@ -77,7 +78,7 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
                     dcc.Dropdown(
                         id='subfolder-dropdown-2',
                         options=get_dropdown_options(main_folders, sub_folders, subsub_folders_2),
-                        value=None,
+                        value='CTRL0.OUT.MEAN.RD',
                         placeholder="Select Subfolder"
                     ),
                 ], width=6),
@@ -94,7 +95,7 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
                     dcc.Dropdown(
                         id='subfolder-dropdown-3',
                         options=get_dropdown_options(main_folders, sub_folders2, subsub_folders_3),
-                        value=None,
+                        value='FMC1.MD22.0.POSITION.RD',
                         placeholder="Select Subfolder"
                     ),
                 ], width=6),
@@ -102,7 +103,7 @@ def create_layout(main_folders, sub_folders, subsub_folders_1, sub_folders2, sub
                     dcc.Dropdown(
                         id='subfolder-dropdown-4',
                         options=get_dropdown_options(main_folders, sub_folders2, subsub_folders_4),
-                        value=None,
+                        value='LSU.2.CTRL_IN.MEAN.RD',
                         placeholder="Select Subfolder"
                     ),
                 ], width=6),
@@ -129,28 +130,47 @@ app.layout = create_layout(main_folder, sub_folder, subsub_folder_1, sub_folder2
                            subsub_folder_4)
 
 
-@app.callback(Output('line-plot-1', 'figure'), [Input('subfolder-dropdown', 'value')])
+@app.callback(Output('line-plot-1', 'figure'),
+              [Input('subfolder-dropdown', 'value')])
 def update_graph_1(selected_subfolder):
+    start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_1)
+    end = time.perf_counter()
+    print(f'Update Graph1 Plot Function Completed in {round(end - start, 2)} seconds')
+
     return fig
 
 
-@app.callback(Output('line-plot-2', 'figure'), [Input('subfolder-dropdown-2', 'value')])
+@app.callback(Output('line-plot-2', 'figure'),
+              [Input('subfolder-dropdown-2', 'value')])
 def update_graph_2(selected_subfolder):
+    start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_2)
+    end = time.perf_counter()
+    print(f'Update Graph2 Plot Function Completed in {round(end - start, 2)} seconds')
+
     return fig
 
 
-@app.callback(Output('line-plot-3', 'figure'), [Input('subfolder-dropdown-3', 'value')])
+@app.callback(Output('line-plot-3', 'figure'),
+              [Input('subfolder-dropdown-3', 'value')])
 def update_graph_3(selected_subfolder):
+    start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_3)
+    end = time.perf_counter()
+    print(f'Update Graph3 Plot Function Completed in {round(end - start, 2)} seconds')
+
     return fig
 
 
 @app.callback(Output('line-plot-4', 'figure'),
               [Input('subfolder-dropdown-4', 'value')])
 def update_graph_4(selected_subfolder):
+    start = time.perf_counter()
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_4)
+    end = time.perf_counter()
+    print(f'Update Graph4 Plot Function Completed in {round(end - start, 2)} seconds')
+
     return fig
 
 
