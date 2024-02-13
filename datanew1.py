@@ -167,12 +167,8 @@ app.layout = create_layout(main_folder, sub_folder, subsub_folder_1, sub_folder2
 def update_graph_1(selected_subfolder):
     start = time.perf_counter()
 
-    start_dt = datetime.datetime.now()
-
-    parquet_data, start_dt, stop_dt = load_parquet_data(main_folder, start_dt=start_dt)
-
-    if stop_dt is None:
-        stop_dt = datetime.datetime.now()
+    start_dt = datetime.datetime(2023, 1, 1)
+    stop_dt = datetime.datetime(2023, 12, 31)
 
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_1, start_dt, stop_dt)
 
@@ -187,11 +183,8 @@ def update_graph_1(selected_subfolder):
 def update_graph_2(selected_subfolder):
     start = time.perf_counter()
 
-    start_dt = datetime.datetime.now()
-    parquet_data, start_dt, stop_dt = load_parquet_data(main_folder, start_dt=start_dt)
-
-    if stop_dt is None:
-        stop_dt = datetime.datetime.now()
+    start_dt = datetime.datetime(2023, 1, 1)
+    stop_dt = datetime.datetime(2023, 12, 31)
 
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder, subsub_folder_2, start_dt, stop_dt)
 
@@ -205,12 +198,9 @@ def update_graph_2(selected_subfolder):
               [Input('subfolder-dropdown-3', 'value')])
 def update_graph_3(selected_subfolder):
     start = time.perf_counter()
-    start_dt = datetime.datetime.now()
 
-    parquet_data, start_dt, stop_dt = load_parquet_data(main_folder, start_dt=start_dt)
-
-    if stop_dt is None:
-        stop_dt = datetime.datetime.now()
+    start_dt = datetime.datetime(2023, 1, 1)
+    stop_dt = datetime.datetime(2023, 12, 31)
 
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_3, start_dt, stop_dt)
 
@@ -225,12 +215,8 @@ def update_graph_3(selected_subfolder):
 def update_graph_4(selected_subfolder):
     start = time.perf_counter()
 
-    start_dt = datetime.datetime.now()
-
-    parquet_data, start_dt, stop_dt = load_parquet_data(main_folder, start_dt=start_dt)
-
-    if stop_dt is None:
-        stop_dt = datetime.datetime.now()
+    start_dt = datetime.datetime(2023, 1, 1)
+    stop_dt = datetime.datetime(2023, 12, 31)
 
     fig = update_line_plot(selected_subfolder, main_folder, sub_folder2, subsub_folder_4, start_dt, stop_dt)
 
