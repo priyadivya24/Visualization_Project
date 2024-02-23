@@ -43,7 +43,7 @@ def load_parquet_data(property_path, start_dt, stop_dt):
                                                                  ('timestamp', '<=', stop_timestamp)])
 
         parquet_data[p] = pq_dataset.read()
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    
     return parquet_data
 
 
