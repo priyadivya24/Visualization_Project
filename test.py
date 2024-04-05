@@ -12,7 +12,7 @@ actual plotly-resampler graph and cache it on the server side. These two callbac
 chained together using the dcc.Interval component.
 
 """
-from data import get_doocs_properties, load_parquet_data
+from data2 import get_doocs_properties, load_parquet_data
 from pathlib import Path
 from datetime import datetime
 
@@ -36,7 +36,7 @@ from plotly_resampler.aggregation import MinMaxLTTB
 # Data that will be used for the plotly-resampler figures
 online_data = {}
 
-doocs_properties = get_doocs_properties(Path("D:/mahad/PyCharm Community Edition 2023.3.2/XFEL/XFEL.SYNC"))
+doocs_properties = get_doocs_properties(Path("C:/Users/pmahad/Desktop/Project/XFEL.SYNC"))
 
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(__name__, transforms=[ServersideOutputTransform(), TriggerTransform()])
@@ -94,6 +94,8 @@ def add_graph_div(_, selected_properties, div_children: List[html.Div], coarse_t
                     dcc.Interval(
                         id={"type": "interval", "index": uid}, max_intervals=1, interval=1
                     ),
+                    # Add the spectrogram-graph within the container
+                    dcc.Graph(id={"type": "spectrogram-graph", "index": uid}, figure=go.Figure()),
                 ],
             )
 
@@ -120,47 +122,41 @@ def add_graph_div(_, selected_properties, div_children: List[html.Div], coarse_t
     ],
     prevent_initial_call=True,
 )
-def construct_display_graph(n_clicks, _, selected_properties, analysis, window_size, coarse_tuning):
+def construct_display_graph(n_clicks, _, selected_properties, analysis, window_size, coarse_tuning) -> FigureResampler:
+    print("Coarse Tuning Value:", coarse_tuning)
     file_figures = []
     spec_figures = []
     store_data = []
-
     if selected_properties is None:
         return [], [], []
 
-    props = [Path(prop) for prop in selected_properties]
-    loaded_data = load_parquet_data(props, datetime(2023, 10, 15, 17, 30), datetime(2023, 11, 15, 17, 30))
-    for key, item in loaded_data.items():
-        online_data[doocs_properties[str(key)]] = item
+    fig = FigureResampler(
+        go.Figure(),
+        default_n_shown_samples=2_000,
+        default_downsampler=MinMaxLTTB(parallel=True),
+    )
 
-    for dat in loaded_data:
-        uid = doocs_properties[str(dat)]
+    data = online_data[analysis['index']]
 
-        fig = FigureResampler(
-            go.Figure(),
-            default_n_shown_samples=2_000,
-            default_downsampler=MinMaxLTTB(parallel=True),
-        )
-
-        data = online_data[uid]
-
-        sigma = n_clicks * 1e-6
-        fig.add_trace(dict(name="new"),
-                           hf_x=[datetime.fromtimestamp(timestamp) for timestamp in data["timestamp"]],
-                           hf_y=data["data"])
+    sigma = n_clicks * 1e-6
+    fig.add_trace(dict(name="new"),
+                  hf_x=[datetime.fromtimestamp(timestamp) for timestamp in data["timestamp"]],
+                  hf_y=data["data"])
+    if 'include_coarse_tuning' in coarse_tuning:
+        # Include coarse tuning
         if 'include_coarse_tuning' in coarse_tuning:
             # Include coarse tuning
             fig.add_trace(dict(name="coarse tuning"),
                           hf_x=[datetime.fromtimestamp(timestamp) for timestamp in data["coarse_tuning_timestamp"]],
                           hf_y=data["coarse_tuning_data"])
-        fig.update_layout(title=f"<b>{uid}</b>", title_x=0.5)
+        fig.update_layout(title=f"<b>{analysis['index']}</b>", title_x=0.5)
 
-        spec_data, freqs, times = get_spectrogram(data["data"], fs=1, window_size=window_size)
-        spec_fig = go.Figure(go.Heatmap(z=spec_data, x=times, y=freqs, colorscale='Viridis'))
+    spec_data, freqs, times = get_spectrogram(data["data"], fs=1, window_size=window_size)
+    spec_fig = go.Figure(go.Heatmap(z=spec_data, x=times, y=freqs, colorscale='Viridis'))
 
-        file_figures.append(fig)
-        spec_figures.append(spec_fig)
-        store_data.append(Serverside(fig))
+    file_figures.append(fig)
+    spec_figures.append(spec_fig)
+    store_data.append(Serverside(fig))
 
     return file_figures, spec_figures, store_data
 
@@ -196,8 +192,6 @@ def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is not None:
         return fig.construct_update_data(relayoutdata)
     return no_update
-
-
 
 
 # --------------------------------- Running the app ---------------------------------
