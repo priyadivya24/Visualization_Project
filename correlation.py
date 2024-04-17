@@ -42,7 +42,7 @@ app.layout = html.Div([
     html.Div(id="correlation-container", children=[
         html.Div(id="correlation-heatmap"),
         html.Div(id="correlation-data-table"),
-    ]),
+    ], style={'margin': '20px 0'}),
     html.Div(id="details-container", children=[]),
 ])
 
@@ -206,42 +206,37 @@ def update_details(n_clicks, laser_files, link_files, climate_files):
     props = [Path(prop) for prop in selected_properties]
     loaded_data = load_parquet_data(props, datetime(2023, 10, 15, 17, 30), datetime(2023, 11, 15, 17, 30))
 
-    details_content = []
+    all_stats = []  # Store statistics for all variables
+    all_names = []  # Store names of variables
 
     for key, item in loaded_data.items():
 
         item_df = item.to_pandas()
         item_df.index = pd.to_datetime(item_df.index)
         daily_data = item_df.groupby(item_df.index.date)
-        daily_stats = []
 
         for date, group in daily_data:
 
             mean_value = group['data'].mean()
             min_value = group['data'].min()
             max_value = group['data'].max()
-            std_dev = group['data'].std()  # Calculate standard deviation
-
-            min_timestamp = group['data'].idxmin()
-            max_timestamp = group['data'].idxmax()
-
-            # statics
-            daily_stats.append(html.Div([
-                html.H3(f"{doocs_properties[str(key)]}"),
-                html.Table([
-                    html.Tr([html.Th('Statistic'), html.Th('Value')]),
-                    html.Tr([html.Td('Mean'), html.Td(round(mean_value, 2))]),
-                    html.Tr([html.Td('Min'), html.Td(round(min_value, 2))]),
-                    html.Tr([html.Td('Max'), html.Td(round(max_value, 2))]),
-                    html.Tr([html.Td('Std Dev'), html.Td(round(std_dev, 2))]),
-                ])
-            ]))
-        details_content.extend(daily_stats)
-
-    return details_content
+            std_dev = group['data'].std()  
 
 
+            all_stats.append([doocs_properties[str(key)], round(mean_value, 2), round(min_value, 2), round(max_value, 2), round(std_dev, 2)])
+            all_names.append(doocs_properties[str(key)])
 
+    df = pd.DataFrame(all_stats, columns=['File Name', 'Mean', 'Min', 'Max', 'Standard Deviation'])
+
+    # Convert DataFrame to DataTable
+    datatable = dash_table.DataTable(
+        id='datatable-details',
+        columns=[{'name': col, 'id': col} for col in df.columns],
+        data=df.to_dict('records'),
+        style_table={'overflowX': 'auto'},
+    )
+
+    return [datatable]
 
 
 # Running the app
